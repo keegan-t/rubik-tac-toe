@@ -1,4 +1,6 @@
 import { WebSocket, type RawData } from "ws";
+import { createServer } from "http";
+import type { AddressInfo } from "net";
 import { startServer } from "./index";
 import { generateRoomId } from "../shared";
 import type { ClientMessage, ServerMessage } from "../shared";
@@ -102,8 +104,11 @@ class TestClient {
 }
 
 async function run(): Promise<void> {
-    const server = startServer(0, { reconnectGraceMs: 300 });
-    const url = `ws://127.0.0.1:${server.port}`;
+    const httpServer = createServer();
+    startServer(httpServer, { reconnectGraceMs: 300 });
+    await new Promise<void>((resolve) => httpServer.listen(0, resolve));
+    const { port } = httpServer.address() as AddressInfo;
+    const url = `ws://127.0.0.1:${port}`;
 
     // Test: invalid room ID is rejected
     const badClient = new TestClient(`${url}/!!!`);
@@ -282,7 +287,9 @@ async function run(): Promise<void> {
     await cubePlayer1.close();
     await cubePlayer2.close();
 
-    await server.close();
+    await new Promise<void>((resolve, reject) =>
+        httpServer.close((err) => (err ? reject(err) : resolve())),
+    );
 
     console.log("All multiplayer tests passed.");
 }

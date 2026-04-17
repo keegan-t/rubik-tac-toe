@@ -1,6 +1,5 @@
 import { WebSocketServer, WebSocket, type RawData } from "ws";
-import type { AddressInfo } from "net";
-import type { IncomingMessage } from "http";
+import type { IncomingMessage, Server as HttpServer } from "http";
 import { randomBytes } from "crypto";
 import {
     applyCubeMove,
@@ -37,11 +36,6 @@ interface Room {
 
 interface ServerOptions {
     reconnectGraceMs?: number;
-}
-
-export interface RunningServer {
-    port: number;
-    close: () => Promise<void>;
 }
 
 function send(ws: WebSocket, message: ServerMessage): void {
@@ -216,7 +210,7 @@ function createRoom(mode: GameMode = "classic"): Room {
     return room;
 }
 
-export function startServer(port = 8080, options: ServerOptions = {}): RunningServer {
+export function startServer(httpServer: HttpServer, options: ServerOptions = {}): void {
     const rooms = new Map<string, Room>();
     const reconnectGraceMs = options.reconnectGraceMs ?? RECONNECT_GRACE_MS;
 
@@ -284,7 +278,7 @@ export function startServer(port = 8080, options: ServerOptions = {}): RunningSe
         rooms.delete(roomId);
     }
 
-    const wss = new WebSocketServer({ port });
+    const wss = new WebSocketServer({ server: httpServer });
 
     wss.on("connection", (socket: WebSocket, request: IncomingMessage) => {
         const rawPath = request.url ?? "";
@@ -548,19 +542,4 @@ export function startServer(port = 8080, options: ServerOptions = {}): RunningSe
         });
     });
 
-    const listeningPort = (wss.address() as AddressInfo).port;
-
-    return {
-        port: listeningPort,
-        close: () =>
-            new Promise<void>((resolve, reject) => {
-                wss.close((error?: Error) => {
-                    if (error) {
-                        reject(error);
-                        return;
-                    }
-                    resolve();
-                });
-            }),
-    };
 }
