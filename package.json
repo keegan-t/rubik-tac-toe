@@ -1,0 +1,27 @@
+{
+  "name": "rubik-tac-toe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run build:server && npm run build:client",
+    "build:server": "tsc",
+    "build:client": "vite build",
+    "test": "npm run test:state && npm run test:cube-state && npm run test:multiplayer",
+    "test:state": "npm run build:server && node dist/shared/gameState.tests.js",
+    "test:cube-state": "npm run build:server && node dist/shared/cubeGameState.tests.js",
+    "test:multiplayer": "npm run build:server && node dist/server/multiplayer.tests.js",
+    "start": "npm run build:server && node dist/server/start.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@types/ws": "^8.18.1",
+    "typescript": "^5.5.3",
+    "vite": "^8.0.8"
+  },
+  "private": true
+}
