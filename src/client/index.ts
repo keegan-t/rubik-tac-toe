@@ -933,6 +933,7 @@ function renderGame(s: LocalGameState): void {
             cube.appendChild(faceGrid);
         }
 
+        let hadPointerDown = false;
         let pointerDown = false;
         let dragging = false;
         let capturedPointerId: number | null = null;
@@ -1008,6 +1009,7 @@ function renderGame(s: LocalGameState): void {
         };
 
         scene.addEventListener("pointerdown", (event) => {
+            hadPointerDown = true;
             pointerDown = true;
             dragging = false;
             dragStartX = event.clientX;
@@ -1080,6 +1082,9 @@ function renderGame(s: LocalGameState): void {
 
         scene.addEventListener("pointerleave", clearHover);
         scene.addEventListener("pointerup", (event) => {
+            if (!hadPointerDown) {
+                return;
+            }
             const wasDragging = dragging;
             stopDragging();
 
